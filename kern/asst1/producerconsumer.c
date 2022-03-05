@@ -17,9 +17,10 @@
    shown below. It is an array of pointers to data_items.
 */
 
-
+struct lock *lock;
+struct cv * empty;
+struct cv * full;
 data_item_t * item_buffer[BUFFER_SIZE];
-
 volatile int write_head, read_tail;
 
 
@@ -44,15 +45,18 @@ static bool is_empty() {
 data_item_t * consumer_receive(void)
 {
         data_item_t * item;
-
+        lock_acquire(lock);
 
         while(is_empty()) {
                 /* busy wait */
+                 cv_wait(empty,lock);
         }
+               
         
         item = item_buffer[read_tail];
         read_tail = (read_tail + 1) % BUFFER_SIZE;
-
+        cv_signal(full,lock);
+        lock_release(lock);
         return item;
 }
 
@@ -64,11 +68,16 @@ data_item_t * consumer_receive(void)
 
 void producer_send(data_item_t *item)
 {
+        lock_acquire(lock);
         while(is_full()) {
+                cv_wait(full,lock);
                 /* busy wait */
         }
         item_buffer[write_head] = item;
         write_head = (write_head + 1) % BUFFER_SIZE;
+        cv_signal(empty,lock);
+
+        lock_release(lock);
 }
 
 /* Perform any initialisation (e.g. of global data or synchronisation
@@ -79,11 +88,25 @@ void producer_send(data_item_t *item)
 void producerconsumer_startup(void)
 {
         write_head = read_tail = 0;
+        lock = lock_create("lock");
+        if (lock == NULL) {
+                panic("I'm dead");
+        }
+        empty = cv_create("empty");
+        if (empty == NULL){
+                panic("I'm dead");
+        }
+        full = cv_create("full");
+        if (full == NULL){
+                panic("I'm dead");
+        }
 }
 
 /* Perform your clean-up here */
 void producerconsumer_shutdown(void)
 {
-        
+        cv_destroy(empty);
+        cv_destroy(full);
+        lock_destroy(lock);
 }
 

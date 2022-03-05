@@ -13,7 +13,7 @@
  * INSERT ANY GLOBAL VARIABLES THAT YOU MAY REQUIRE HERE
  * ********************************************************************
  */
-
+struct lock *count_lock;
 
 /*
  * counter_initialise() allocates a synchronised counter and initialises
@@ -41,7 +41,13 @@ struct sync_counter * counter_initialise(int val)
          * INSERT ANY INITIALISATION CODE YOU MAY REQUIRE HERE
          * ********************************************************************
          */
+        count_lock = lock_create("count_lock");
+        if (count_lock == NULL) {
+                panic("I'm dead");
+        }
         
+
+
         return sc_ptr;
 }
 
@@ -64,6 +70,7 @@ int counter_read_and_destroy(struct sync_counter *sc_ptr)
          * INSERT ANY CLEANUP CODE YOU MAY REQUIRE HERE
          * **********************************************************************
          */
+        lock_destroy(count_lock); 
         kfree(sc_ptr);
         return count;
 }
@@ -75,7 +82,9 @@ int counter_read_and_destroy(struct sync_counter *sc_ptr)
 
 void counter_increment(struct sync_counter *sc_ptr)
 {
+        lock_acquire(count_lock);
         sc_ptr->counter = sc_ptr->counter + 1;
+        lock_release(count_lock);
 }
 
 /*
@@ -85,6 +94,8 @@ void counter_increment(struct sync_counter *sc_ptr)
 
 void counter_decrement(struct sync_counter *sc_ptr)
 {
+        lock_acquire(count_lock);
         sc_ptr->counter = sc_ptr->counter - 1;
+        lock_release(count_lock);
 }
 

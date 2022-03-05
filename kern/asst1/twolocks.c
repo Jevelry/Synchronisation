@@ -9,7 +9,11 @@
 /********************************************************************************
  Document your resource order here. 
 ********************************************************************************/
-
+/*
+HOLD ORDER
+1. LOCK A
+2. LOCK B
+*/
 
 
 /* declare (local to this file) pointers to the synch variables that
@@ -34,14 +38,16 @@ static void bill(void * unusedpointer, unsigned long unusedint)
         kprintf("Hi, I'm Bill\n");
 
         for (i = 0; i < NUM_LOOPS; i++) {
-                
+                //new
+                lock_acquire(locka);
+                //
                 lock_acquire(lockb);
                 
                 holds_lockb();          /* Critical section, we only hold lockb */
                 
                 lock_release(lockb);
 
-                lock_acquire(locka);
+                // lock_acquire(locka);
                 lock_acquire(lockb);
 
                                         /* Bill now holds both locks and can do
@@ -49,8 +55,11 @@ static void bill(void * unusedpointer, unsigned long unusedint)
                                          the locks */
                 holds_locka_and_b();
                 
-                lock_release(lockb);
+                //dont think this matters
                 lock_release(locka);
+                //
+                lock_release(lockb);
+                // lock_release(locka);
         }
 
         kprintf("Bill says 'bye'\n");
@@ -96,9 +105,11 @@ static void ben(void * unusedpointer, unsigned long unusedint)
                 holds_locka();          /* Critical section, only holds locka */
                 
                 lock_release(locka);
-
-                lock_acquire(lockb);
+                //new
                 lock_acquire(locka);
+                //
+                lock_acquire(lockb);
+                // lock_acquire(locka);
 
                                         /* Ben now holds both locks and can do
                                          what ever ben needs to do while holding
