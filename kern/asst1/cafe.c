@@ -134,7 +134,7 @@ unsigned long announce_serving_ticket(unsigned long barista_number, unsigned int
 
         return cust;
 }
-
+// function to check if barista has stored ticket inside barista tickets
 int is_ticket_announced(unsigned int ticket) {
         for (int i = 0; i < NUM_BARISTAS; i++) {
                 if (barista_tickets[i] == ticket) {
@@ -143,6 +143,7 @@ int is_ticket_announced(unsigned int ticket) {
         }
         return -1;
 }
+// function to check if barista has stored ticket inside customer tickets
 
 int is_ticket_grabbed(unsigned int ticket) {
         for (int i = 0; i < NUM_CUSTOMERS; i++) {
@@ -165,6 +166,7 @@ void cafe_startup(void)
         ticket_counter = 0;
         next_serving = 0;
         current_customers = NUM_CUSTOMERS;
+
 
 
         for (int i = 0; i < NUM_CUSTOMERS; i++){
@@ -201,6 +203,12 @@ void cafe_shutdown(void)
 
         for (int i = 0; i < NUM_BARISTAS; i++){
                 cv_destroy(barista_cv[i]);
+        }
+        for (int i = 0; i < NUM_CUSTOMERS; i++){
+                customer_tickets[i] = 0;
+        }
+        for (int i = 0; i < NUM_BARISTAS; i++){
+                barista_tickets[i] = 0;
         }
 }
                               
