@@ -204,6 +204,7 @@ void cafe_shutdown(void)
         for (int i = 0; i < NUM_BARISTAS; i++){
                 cv_destroy(barista_cv[i]);
         }
+        // For somereason if i run 1d again the array doesn't reset so im manually resetting the array to 0 here
         for (int i = 0; i < NUM_CUSTOMERS; i++){
                 customer_tickets[i] = 0;
         }
